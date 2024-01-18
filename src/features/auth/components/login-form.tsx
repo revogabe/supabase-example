@@ -2,9 +2,11 @@
 
 import React from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/shadcn/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/shadcn/card'
 import { Input } from '@/shadcn/input'
+import { useSupabaseBrowser } from '@/utils/supabase'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -17,6 +19,9 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>
 
 export const LoginForm = () => {
+  const supabase = useSupabaseBrowser()
+  const router = useRouter()
+
   const {
     register,
     handleSubmit,
@@ -26,9 +31,15 @@ export const LoginForm = () => {
     resolver: zodResolver(loginSchema),
   })
 
-  const onSubmit = (payload: LoginFormValues) => {
-    console.log(payload)
-    reset()
+  const onSubmit = async (payload: LoginFormValues) => {
+    const { data } = await supabase.auth.signInWithPassword({
+      email: payload.email,
+      password: payload.password,
+    })
+
+    if (data) {
+      router.push('/')
+    }
   }
 
   return (

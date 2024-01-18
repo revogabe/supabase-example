@@ -4,6 +4,7 @@ import React from 'react'
 import { Button } from '@/shadcn/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/shadcn/card'
 import { Input } from '@/shadcn/input'
+import { useSupabaseBrowser } from '@/utils/supabase'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -17,6 +18,8 @@ const registerSchema = z.object({
 type RegisterFormValues = z.infer<typeof registerSchema>
 
 export const RegisterForm = () => {
+  const supabase = useSupabaseBrowser()
+
   const {
     register,
     handleSubmit,
@@ -26,8 +29,17 @@ export const RegisterForm = () => {
     resolver: zodResolver(registerSchema),
   })
 
-  const onSubmit = (payload: RegisterFormValues) => {
-    console.log(payload)
+  const onSubmit = async (payload: RegisterFormValues) => {
+    await supabase.auth.signUp({
+      email: payload.email,
+      password: payload.password,
+      options: {
+        emailRedirectTo: 'http://localhost:3000/api/auth-callback',
+        data: {
+          name: payload.name,
+        },
+      },
+    })
     reset()
   }
 
